@@ -325,11 +325,69 @@ local mainUIVisible = true
 local Frame4
 local Frame5
 
+-- V logo toggle + mobile-friendly dragging
+local logoDragging = false
+local logoDragInput = nil
+local logoDragStart = nil
+local logoStartPosition = nil
+local logoMoved = false
+
 local function setMainUIVisible(state)
 	mainUIVisible = state
 	if Frame4 then Frame4.Visible = state end
 	if Frame5 then Frame5.Visible = state end
 end
+
+local function beginLogoDrag(input)
+	logoDragging = true
+	logoMoved = false
+	logoDragStart = input.Position
+	logoStartPosition = VLogo.Position
+	logoDragInput = input
+end
+
+VLogo.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+		beginLogoDrag(input)
+	end
+end)
+
+VLogo.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+		logoDragInput = input
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if not logoDragging or input ~= logoDragInput then
+		return
+	end
+	local delta = input.Position - logoDragStart
+	if math.abs(delta.X) > 6 or math.abs(delta.Y) > 6 then
+		logoMoved = true
+	end
+	VLogo.Position = UDim2.new(
+		logoStartPosition.X.Scale,
+		logoStartPosition.X.Offset + delta.X,
+		logoStartPosition.Y.Scale,
+		logoStartPosition.Y.Offset + delta.Y
+	)
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+	if logoDragging and (input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1) then
+		logoDragging = false
+		logoDragInput = nil
+	end
+end)
+
+VLogo.Activated:Connect(function()
+	if logoMoved then
+		logoMoved = false
+		return
+	end
+	setMainUIVisible(not mainUIVisible)
+end)
 
 Frame4 = Instance.new("Frame")
 Frame4.Size = UDim2.new(0, 244, 0, 164)
@@ -633,57 +691,8 @@ local TextLabel5 = Instance.new("TextLabel")
 TextLabel5.Size = UDim2.new(1, 0, 0, 14)
 TextLabel5.Position = UDim2.new(0, 0, 1, -18)
 TextLabel5.BackgroundTransparency = 1
-TextLabel5.Text = "VYRE SCRIPTS  â€¢  IN YOUTUBE"
+TextLabel5.Text = "VYRE SCRIPTS - FREE ONLY"
 TextLabel5.TextColor3 = Color3.fromRGB(170, 130, 50)
 TextLabel5.Font = Enum.Font.GothamBold
 TextLabel5.TextSize = 8.5
-TextLabel5.TextXAlignment = Enum.TextXAlignment.Center
-TextLabel5.ZIndex = 4
-TextLabel5.Parent = Frame5
-
--- Dragging
-local inputPosition
-local Frame5Position
-
-Frame9.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-		u72 = true
-		inputPosition = input.Position
-		Frame5Position = Frame5.Position
-		input.Changed:Connect(function()
-			if input.UserInputState == Enum.UserInputState.End then
-				u72 = false
-			end
-		end)
-	end
-end)
-
-Frame9.InputChanged:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-		u73 = input
-	end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-	if input == u73 and u72 then
-		local v123 = input.Position - inputPosition
-		Frame5.Position = UDim2.new(
-			Frame5Position.X.Scale,
-			Frame5Position.X.Offset + v123.X,
-			Frame5Position.Y.Scale,
-			Frame5Position.Y.Offset + v123.Y
-		)
-		Frame4.Position = UDim2.new(
-			Frame5Position.X.Scale,
-			Frame5Position.X.Offset + v123.X - 12,
-			Frame5Position.Y.Scale,
-			Frame5Position.Y.Offset + v123.Y - 12
-		)
-	end
-end)
-
--- Open immediately; the V logo can always hide/show the main panel.
-Frame5.Size = UDim2.new(0, 220, 0, 140)
-Frame4.Size = UDim2.new(0, 244, 0, 164)
-Frame5.Visible = true
-Frame4.Visible = true
+TextLabel5.TextXAlignm
